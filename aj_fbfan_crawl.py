@@ -293,7 +293,6 @@ class AJFanPageCrawl(Frame):
         day = str(int(self.day_entry.get()))
         datetime_limt = ('%s-%s-%s 00-00-00' % (self.year_entry.get(), mon, day))
         print(datetime_limt)
-        return
 
         # -----Start to crawl fb fan page data-----
         # get_token()
