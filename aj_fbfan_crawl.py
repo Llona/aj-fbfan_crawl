@@ -246,7 +246,7 @@ class AJFanPageCrawl(Frame):
 
         # -----Store user input path, name and password into Setting.ini config file-----
         if not self.user_input_token == self.token_ini:
-            self.setlog("新的路徑設定寫入設定檔: " + SETTING_NAME, "info")
+            self.setlog("新的token寫入設定檔: " + SETTING_NAME, "info")
             # print("path not match, write new path to ini")
             w_file_stat_lv = self.write_config(SETTING_NAME, 'General', 'token', self.user_input_token)
 
@@ -292,20 +292,21 @@ class AJFanPageCrawl(Frame):
                 mon = str('0%d' % mon)
         day = str(int(self.day_entry.get()))
         datetime_limt = ('%s-%s-%s 00-00-00' % (self.year_entry.get(), mon, day))
-        print(datetime_limt)
+        # print(datetime_limt)
 
         # -----Start to crawl fb fan page data-----
         # get_token()
         for fanpage_name, fanpage_id in fanpage_dic_ld.items():
-            print('%s - %s' % (fanpage_name, fanpage_id))
-            self.setlog("開始抓取粉絲頁: %s" % fanpage_name, "info2")
+            # print('%s - %s' % (fanpage_name, fanpage_id))
+            self.setlog("開始抓取粉絲頁: %s" % fanpage_name, "info")
             posts = self.start_crawl(self.user_input_token, fanpage_id, datetime_limt)
             if posts:
-                self.setlog("抓取結束!產生報表中", "info")
+                self.setlog("抓取結束!產生報表中", "info2")
                 # 檔案輸出
                 self.create_form(posts, fanpage_name, form_foldername)
             else:
                 self.setlog("粉絲頁: %s 讀取失敗, 換個token再試試吧" % fanpage_name, "error")
+        self.setlog('所有工作已完成!!', 'info')
 
     def start_crawl(self, token, fanpage_id, datetime_limt):
         # print(token)
@@ -320,7 +321,7 @@ class AJFanPageCrawl(Frame):
 
         page = 1
         while 'paging' in res.json():
-            print('正在抓取第%d頁' % page)
+            # print('正在抓取第%d頁' % page)
             self.setlog("正在抓取第%d頁" % page, "info2")
 
             for post in res.json()['data']:
@@ -357,7 +358,7 @@ class AJFanPageCrawl(Frame):
 
                 temp_dic = {}
                 temp_dic['date'] = parse(post['created_time'])
-                temp_dic['content'] = post.get('message')
+                temp_dic['content'] = str(post.get('message'))
                 temp_dic['likes'] = likes
                 temp_dic['shares'] = shares
                 temp_dic['comments'] = comments
@@ -411,8 +412,8 @@ class AJFanPageCrawl(Frame):
                 writhfile_excel_lh = open(excel_full_path, 'w', encoding='utf8')
                 writhfile_excel_lh.write(excel_content)
                 writhfile_excel_lh.close()
-                print('已產生excel檔')
-                self.setlog("已產生excel檔, 路徑:" + excel_full_path, "info")
+                # print('已產生excel檔')
+                self.setlog("已產生excel檔, 路徑:" + excel_full_path, "info2")
 
             except Exception as ex:
                 print("Error! 寫入excel檔發生錯誤!請確認目錄有temp_form.xls且內容正確", 'error')
