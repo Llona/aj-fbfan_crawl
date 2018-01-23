@@ -88,7 +88,7 @@ class AJFanPageCrawl(Frame):
 
         self.style.configure('Tupdate_button.TButton', font=('iLiHei', 9))
         self.start_update_button = Button(self.user_input_frame, text='Start', command=self.crawl_gen_form, style='Tupdate_button.TButton')
-        self.start_update_button.place(relx=0.710, rely=0.788, relwidth=0.105, relheight=0.200)
+        self.start_update_button.place(relx=0.350, rely=0.788, relwidth=0.105, relheight=0.200)
 
         # self.browser_button = Button(self.user_input_frame, text='Browser', command=self.browser_diag, style='Tget_wiki_button.TButton')
         # self.browser_button.place(relx=0.820, rely=0.160, relwidth=0.105, relheight=0.200)
@@ -166,7 +166,19 @@ class AJFanPageCrawl(Frame):
         self.log_txt.tag_config("info", foreground="#008800")
         self.log_txt.tag_config("info2", foreground="#404040")
 
+        root.bind('<Key-Return>', self.press_key_enter)
+        self.token_entry.bind("<ButtonRelease-1>", self.select_all)
+
         # self.top.protocol("WM_DELETE_WINDOW", self.close_frame)
+
+    def press_key_enter(self, event=None):
+        self.crawl_gen_form()
+
+    def select_all(self, event):
+        # select all text
+        event.widget.select_range(0, 'end')
+        # move cursor to the end
+        event.widget.icursor('end')
 
     def browser_diag(self):
         path = askopenfilename(initialdir=os.path.split(self.token_entry.get())[0], parent=self.top)
