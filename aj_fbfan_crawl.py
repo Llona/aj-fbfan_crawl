@@ -52,7 +52,6 @@ class AJFanPageCrawl(Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        print(SETTING_NAME)
         self.style = Style()
         self.style.configure('Tlog_frame.TLabelframe', font=('iLiHei', 10))
         self.style.configure('Tlog_frame.TLabelframe.Label', font=('iLiHei', 10))
@@ -244,7 +243,6 @@ class AJFanPageCrawl(Frame):
         # print(str(browser.select))
         browser.open(const_define.FB_GRAPH_API_URL)
 
-        temp = str(browser.select)
         content_lt = str(browser.select).splitlines()
         for line in content_lt:
             if line.find('},"props":{"accessToken":') > -1:
@@ -252,9 +250,6 @@ class AJFanPageCrawl(Frame):
                 if re_h:
                     token = re_h.group(1)
 
-        file_write_h = open('test.txt', 'w', encoding='utf8')
-        file_write_h.write(temp)
-        file_write_h.close()
         # print(str(browser.select))
         return token
 
@@ -334,8 +329,6 @@ class AJFanPageCrawl(Frame):
                 mon = str('0%d' % mon)
         day = str(int(self.day_entry.get()))
         datetime_limt = ('%s-%s-%s 00-00-00' % (self.year_entry.get(), mon, day))
-
-        print('token is:%s' % token)
 
         # -----start to crawl and gen form on other process-----
         # print(datetime_limt)

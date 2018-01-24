@@ -5,11 +5,9 @@ from datetime import datetime
 import const_define
 import os
 
-FB_GRAPH_API_URL = r'https://developers.facebook.com/tools/explorer/'
 
 def start_to_crawl_fanpage(token, fanpage_dic_ld, form_foldername, datetime_limt, queue_h):
     # -----Start to crawl fb fan page data-----
-    # get_token()
     for fanpage_name, fanpage_id in fanpage_dic_ld.items():
         # print('%s - %s' % (fanpage_name, fanpage_id))
         # print("開始抓取粉絲頁: %s" % fanpage_name)
@@ -43,9 +41,11 @@ def start_crawl(token, fanpage_id, datetime_limt, queue_h):
     while 'paging' in res.json():
         # self.setlog("正在抓取第%d頁" % page, "info2")
         # print('正在抓取第%d頁' % page)
-        queue_h.put(['info2', '正在抓取第%d頁' % page])
-
+        post_count = 0
         for post in res.json()['data']:
+            post_count += 1
+            queue_h.put(['info2', '正在抓取第%d頁, 第%d篇貼文' % (page, post_count)])
+
             post_date = parse(post['created_time'])
             post_date = post_date.replace(tzinfo=None)
             if post_date < datetime.strptime(datetime_limt, const_define.DATETIME_FORMAT):
