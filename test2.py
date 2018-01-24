@@ -1,18 +1,12 @@
 from dateutil.parser import parse
 from datetime import datetime
 import requests
+import re
+from robobrowser import RoboBrowser
 
-# token = '<access token>'
-# res = requests.get('https://graph.facebook.com/v2.3/me?access_token=%s'%(token))
-# print(res.text)
+FB_GRAPH_API_URL = r'https://developers.facebook.com/tools/explorer/'
 
-TODAY_DATE_DIC = {}
-TODAY_DATE_DIC['YEAR'] = (datetime.now().strftime("%Y"))
-TODAY_DATE_DIC['MON'] = (datetime.now().strftime("%m"))
-TODAY_DATE_DIC['DAY'] = (datetime.now().strftime("%d"))
-
-print(TODAY_DATE_DIC['DAY'])
-email = 'cwlkks@gmail.com'
+email = ''
 password = ''
 
 def get_token():
@@ -50,3 +44,36 @@ def get_token():
     file_write_h.write(response.text)
     file_write_h.close()
 
+def get_token2():
+    base_url = 'https://www.facebook.com'
+    browser = RoboBrowser(history=True)
+    browser.open(base_url)
+
+    form = browser.get_form(id='login_form')
+
+    form["email"] = email
+    form["pass"] = password
+    browser.session.headers['Referer'] = base_url
+
+    browser.submit_form(form)
+    # print(str(browser.select))
+    browser.open(FB_GRAPH_API_URL)
+
+    file_write_h = open('test.txt', 'w', encoding='utf8')
+
+    file_write_h.write(str(browser.select))
+    file_write_h.close()
+    # print(str(browser.select))
+
+
+def get_token3():
+    # file_read_h = open('test.txt', 'r', encoding='utf8')
+    with open('test.txt', "r", encoding='utf8') as ins:
+        for line in ins:
+            if line.find('},"props":{"accessToken":') > -1:
+                # re_h = re.match(r'"props":{"accessToken":"(.+)",', content)
+                re_h = re.match('.*accessToken":"(.*)","appID.*', line)
+                # fanpage_all_dic_ld[re_h.group(1)] = re_h.group(2)
+                if re_h:
+                    print(re_h.group(1))
+get_token3()

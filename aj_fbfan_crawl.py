@@ -13,6 +13,7 @@ import configparser
 from enum import Enum
 from multiprocessing import Process, Queue
 from threading import Timer
+from robobrowser import RoboBrowser
 
 import const_define
 import crawler
@@ -88,8 +89,8 @@ class AJFanPageCrawl(Frame):
         self.version_label.place(relx=0.843, rely=0.87, relwidth=0.147, relheight=0.13)
 
         self.style.configure('Ttoken_label.TLabel', anchor='w', font=('iLiHei', 10))
-        self.token_label = Label(self.user_input_frame, text='輸入token', style='Ttoken_label.TLabel')
-        self.token_label.place(relx=0.01, rely=0.010, relwidth=0.200, relheight=0.166)
+        self.token_label = Label(self.user_input_frame, text='輸入token (保持空白會自動取得token)', style='Ttoken_label.TLabel')
+        self.token_label.place(relx=0.01, rely=0.010, relwidth=0.500, relheight=0.166)
 
         self.user_input_token = self.read_config(SETTING_NAME, 'General', 'token')
         if self.user_input_token == ErrorType.FILE_ERROR.value:
@@ -101,7 +102,7 @@ class AJFanPageCrawl(Frame):
         self.token_entry.place(relx=0.01, rely=0.180, relwidth=0.80, relheight=0.180)
 
         self.style.configure('Tlogin_name_label.TLabel', anchor='w', font=('iLiHei', 10))
-        self.login_name_label = Label(self.user_input_frame, text='輸入管理員帳號', style='Tlogin_name_label.TLabel')
+        self.login_name_label = Label(self.user_input_frame, text='輸入帳號', style='Tlogin_name_label.TLabel')
         self.login_name_label.place(relx=0.01, rely=0.400, relwidth=0.200, relheight=0.166)
 
         self.user_input_login_name = self.read_config(SETTING_NAME, 'General', 'login_name')
@@ -112,11 +113,11 @@ class AJFanPageCrawl(Frame):
             sys.exit(0)
 
         self.login_name_entryVar = StringVar(value=self.user_input_login_name)
-        self.login_name_entry = Entry(self.user_input_frame, textvariable=self.login_name_entryVar, font=('iLiHei', 10), state='disable')
+        self.login_name_entry = Entry(self.user_input_frame, textvariable=self.login_name_entryVar, font=('iLiHei', 10))
         self.login_name_entry.place(relx=0.01, rely=0.550, relwidth=0.30, relheight=0.180)
 
         self.style.configure('Tlogin_password_label.TLabel', anchor='w', font=('iLiHei', 10))
-        self.login_password_label = Label(self.user_input_frame, text='輸入管理員密碼', style='Tlogin_password_label.TLabel')
+        self.login_password_label = Label(self.user_input_frame, text='輸入密碼', style='Tlogin_password_label.TLabel')
         self.login_password_label.place(relx=0.35, rely=0.400, relwidth=0.200, relheight=0.166)
 
         self.__user_input_login_password = self.read_config(SETTING_NAME, 'General', 'login_password')
@@ -125,7 +126,7 @@ class AJFanPageCrawl(Frame):
                                          "讀取設定檔 " + SETTING_NAME + " 錯誤!\n""請確認檔案格式為UTF-16 (unicode format) 或重新安裝" + const_define.TITLE + "\n", parent=self.top)
             sys.exit(0)
         self.login_password_entryVar = StringVar(value=self.__user_input_login_password)
-        self.login_password_entry = Entry(self.user_input_frame, show="*", textvariable=self.login_password_entryVar, font=('iLiHei', 10), state='disable')
+        self.login_password_entry = Entry(self.user_input_frame, show="*", textvariable=self.login_password_entryVar, font=('iLiHei', 10))
         self.login_password_entry.place(relx=0.35, rely=0.550, relwidth=0.30, relheight=0.180)
 
         self.style.configure('Tyear_label.TLabel', anchor='w', font=('iLiHei', 10))
@@ -225,17 +226,43 @@ class AJFanPageCrawl(Frame):
         self.log_txt.see(END)
         self.top.update_idletasks()
 
+    def get_token(self):
+        token = ''
+        base_url = 'https://www.facebook.com'
+        browser = RoboBrowser(history=True)
+        browser.open(base_url)
+
+        form = browser.get_form(id='login_form')
+
+        form["email"] = self.login_name_entry.get()
+        form["pass"] = self.login_password_entry.get()
+        # print(self.login_name_entry.get())
+        # print(self.login_password_entry.get())
+        browser.session.headers['Referer'] = base_url
+
+        browser.submit_form(form)
+        # print(str(browser.select))
+        browser.open(const_define.FB_GRAPH_API_URL)
+
+        temp = str(browser.select)
+        content_lt = str(browser.select).splitlines()
+        for line in content_lt:
+            if line.find('},"props":{"accessToken":') > -1:
+                re_h = re.match('.*accessToken":"(.*)","appID.*', line)
+                if re_h:
+                    token = re_h.group(1)
+
+        file_write_h = open('test.txt', 'w', encoding='utf8')
+        file_write_h.write(temp)
+        file_write_h.close()
+        # print(str(browser.select))
+        return token
+
     def crawl_gen_form(self):
         # -----Clear text widge for log-----
         self.log_txt.config(state="normal")
         self.log_txt.delete('1.0', END)
         self.log_txt.config(state="disable")
-
-        # -----Check user input in GUI-----
-        self.user_input_token = self.token_entry.get()
-        if self.user_input_token == "":
-            tkinter.messagebox.showinfo("message", "請輸入token", parent=self.top)
-            return
 
         # -----get config ini file setting-----
         self.token_ini = self.read_config(SETTING_NAME, 'General', 'token')
@@ -245,19 +272,6 @@ class AJFanPageCrawl(Frame):
                                          "錯誤! 讀取ini設定檔發生錯誤! "
                                          "請在" + const_define.TITLE + "目錄下使用UTF-16格式建立 " + SETTING_NAME)
             return
-
-        # -----Store user input path, name and password into Setting.ini config file-----
-        if not self.user_input_token == self.token_ini:
-            self.setlog("新的token寫入設定檔: " + SETTING_NAME, "info")
-            # print("path not match, write new path to ini")
-            w_file_stat_lv = self.write_config(SETTING_NAME, 'General', 'token', self.user_input_token)
-
-            if w_file_stat_lv == ErrorType.FILE_ERROR.value:
-                tkinter.messagebox.showerror("Error",
-                                             "錯誤! 寫入ini設定檔發生錯誤! "
-                                             "請在" + const_define.TITLE + "目錄下使用UTF-16格式建立 "
-                                             + SETTING_NAME, parent=self.top)
-                return
 
         # -----Get all fan page list-----
         fanpage_all_dic_ld = OrderedDict()
@@ -285,6 +299,31 @@ class AJFanPageCrawl(Frame):
                 return
         file_fanpage_get_h.close()
 
+        # -----Check user input token in GUI, auto get token if is empty-----
+        self.user_input_token = self.token_entry.get()
+        if self.user_input_token == "":
+            self.setlog("自動抓取token中", "info")
+            token = self.get_token()
+            self.setlog("token: %s" % token, "info2")
+            if token == '':
+                tkinter.messagebox.showinfo("message", "自動取得token失敗, 請確認帳號密碼或手動輸入", parent=self.top)
+                return
+        else:
+            token = self.user_input_token
+
+        # -----Store user input token, name and password into Setting.ini config file-----
+        if not self.user_input_token == self.token_ini:
+            self.setlog("新的token寫入設定檔: " + SETTING_NAME, "info")
+            # print("path not match, write new path to ini")
+            w_file_stat_lv = self.write_config(SETTING_NAME, 'General', 'token', self.user_input_token)
+
+            if w_file_stat_lv == ErrorType.FILE_ERROR.value:
+                tkinter.messagebox.showerror("Error",
+                                             "錯誤! 寫入ini設定檔發生錯誤! "
+                                             "請在" + const_define.TITLE + "目錄下使用UTF-16格式建立 "
+                                             + SETTING_NAME, parent=self.top)
+                return
+
         # ----create form sore folder-----
         form_foldername = re.sub(r":", '.', str(datetime.utcnow() + timedelta(hours=8)))
 
@@ -296,12 +335,14 @@ class AJFanPageCrawl(Frame):
         day = str(int(self.day_entry.get()))
         datetime_limt = ('%s-%s-%s 00-00-00' % (self.year_entry.get(), mon, day))
 
+        print('token is:%s' % token)
+
         # -----start to crawl and gen form on other process-----
         # print(datetime_limt)
         # crawler.start_to_crawl_fanpage(self.user_input_token, fanpage_dic_ld, form_foldername, datetime_limt)
         q = Queue()
         process_lt = [crawler.start_to_crawl_fanpage]
-        args_lt = [(self.user_input_token, fanpage_dic_ld, form_foldername, datetime_limt, q,)]
+        args_lt = [(token, fanpage_dic_ld, form_foldername, datetime_limt, q,)]
 
         process = Process(target=create_process, args=(process_lt, args_lt,))
         process.start()
