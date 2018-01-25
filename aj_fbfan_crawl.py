@@ -47,6 +47,8 @@ class AJFanPageCrawl(Frame):
         self.style = Style()
         self.user_input_token = ''
         self.token_ini = ''
+        self.user_input_login_name = ''
+        self.login_name_ini = ''
         self.need_timer_restart = False
         self.timer_h = ''
         self.create_widgets()
@@ -229,7 +231,11 @@ class AJFanPageCrawl(Frame):
         token = ''
         base_url = 'https://www.facebook.com'
         browser = RoboBrowser(history=True)
-        browser.open(base_url)
+        try:
+            browser.open(base_url)
+        except:
+            self.setlog("無法連接facebook, 請確認網路連線", "error")
+            return
 
         form = browser.get_form(id='login_form')
 
@@ -261,8 +267,9 @@ class AJFanPageCrawl(Frame):
 
         # -----get config ini file setting-----
         self.token_ini = self.read_config(SETTING_NAME, 'General', 'token')
+        self.login_name_ini = self.read_config(SETTING_NAME, 'General', 'login_name')
 
-        if self.token_ini == ErrorType.FILE_ERROR.value:
+        if self.token_ini == ErrorType.FILE_ERROR.value or self.login_name_ini == ErrorType.FILE_ERROR.value:
             tkinter.messagebox.showerror("Error",
                                          "錯誤! 讀取ini設定檔發生錯誤! "
                                          "請在" + const_define.TITLE + "目錄下使用UTF-16格式建立 " + SETTING_NAME)
@@ -299,10 +306,10 @@ class AJFanPageCrawl(Frame):
         if self.user_input_token == "":
             self.setlog("自動抓取token中", "info")
             token = self.get_token()
-            self.setlog("token: %s" % token, "info2")
-            if token == '':
-                tkinter.messagebox.showinfo("message", "自動取得token失敗, 請確認帳號密碼或手動輸入", parent=self.top)
+            if token == '' or not token:
+                tkinter.messagebox.showinfo("message", "自動取得token失敗, 請確認網路連線, 帳號密碼或手動輸入token", parent=self.top)
                 return
+            self.setlog("token: %s" % token, "info2")
         else:
             token = self.user_input_token
 
@@ -311,6 +318,19 @@ class AJFanPageCrawl(Frame):
             self.setlog("新的token寫入設定檔: " + SETTING_NAME, "info")
             # print("path not match, write new path to ini")
             w_file_stat_lv = self.write_config(SETTING_NAME, 'General', 'token', self.user_input_token)
+
+            if w_file_stat_lv == ErrorType.FILE_ERROR.value:
+                tkinter.messagebox.showerror("Error",
+                                             "錯誤! 寫入ini設定檔發生錯誤! "
+                                             "請在" + const_define.TITLE + "目錄下使用UTF-16格式建立 "
+                                             + SETTING_NAME, parent=self.top)
+                return
+
+        self.user_input_login_name = self.login_name_entry.get()
+        if not self.user_input_login_name == self.login_name_ini:
+            self.setlog("新的login name寫入設定檔: " + SETTING_NAME, "info")
+            # print("path not match, write new path to ini")
+            w_file_stat_lv = self.write_config(SETTING_NAME, 'General', 'login_name', self.user_input_login_name)
 
             if w_file_stat_lv == ErrorType.FILE_ERROR.value:
                 tkinter.messagebox.showerror("Error",
@@ -369,6 +389,10 @@ def check_all_file_status():
         return False
     if not os.path.exists('icons\\main.ico'):
         return False
+    if not os.path.exists(const_define.FANPAGE_NAME):
+        return False
+    if not os.path.exists(const_define.FANPAGE_GET_LIST):
+        return False
     return True
 
 
@@ -384,7 +408,9 @@ if __name__ == '__main__':
         tkinter.messagebox.showerror("Error", "遺失必要檔案! \n\n請確認目錄有以下檔案存在, 或 "
                                               "重新安裝: " + const_define.TITLE + "\n"
                                               "1. " + SETTING_NAME + "\n"
-                                              "2. icons\\main.ico")
+                                              "2. " + const_define.FANPAGE_NAME + "\n"
+                                              "3. " + const_define.FANPAGE_GET_LIST + "\n"
+                                              "4. icons\\main.ico")
         sys.exit(0)
 
     try:

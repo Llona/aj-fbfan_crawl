@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 
+VERSION = "v1.0.0"
+TITLE = 'AJ FanPage Crawler - %s' % VERSION
 # 指定要抓到那一天
-DATETIME_LIMIT = '2018-01-1 00-00-00'
+# DATETIME_LIMIT = '2018-01-1 00-00-00'
 DATETIME_FORMAT = "%Y-%m-%d %H-%M-%S"
 
 TODAY_DATE_DIC = {}
@@ -13,10 +15,7 @@ SETTING_NAME = "Settings.ini"
 FANPAGE_NAME = "fanpage.sdb"
 FANPAGE_GET_LIST = "fanpageGet.txt"
 
-VERSION = "v0.0.1"
-TITLE = 'AJ FanPage Crawler - %s' % VERSION
 # https://developers.facebook.com/tools/explorer/
-
 FB_GRAPH_API_URL = r'https://developers.facebook.com/tools/explorer/'
 
 form_template_need_repeat = \
