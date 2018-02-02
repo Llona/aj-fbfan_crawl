@@ -11,6 +11,7 @@ import tkinter.messagebox
 from tkinter.filedialog import askopenfilename
 import configparser
 from enum import Enum
+import multiprocessing
 from multiprocessing import Process, Queue
 from threading import Timer
 from robobrowser import RoboBrowser
@@ -397,6 +398,7 @@ def check_all_file_status():
 
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     # -----MessageBox will create tkinter, so create correct setting tkinter first
     root = Tk()
     root.title(const_define.TITLE)
