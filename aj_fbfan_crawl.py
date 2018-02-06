@@ -74,6 +74,7 @@ class AJFanPageCrawl(Frame):
 
         self.log_txtFont = Font(font=('iLiHei', 10))
         self.log_txt = Text(self.log_frame, wrap='none', state="disabled", xscrollcommand=self.HScroll1.set, yscrollcommand=self.VScroll1.set, font=self.log_txtFont)
+        self.setlog("token可經由以下網址, 或保持空白直接自動取得:\n%s" % (const_define.FB_GRAPH_API_URL), "info2")
         self.log_txt.place(relx=0.01, rely=0.010, relwidth=0.958, relheight=0.936)
         # self.log_txt.insert('1.0', '')
         self.HScroll1['command'] = self.log_txt.xview

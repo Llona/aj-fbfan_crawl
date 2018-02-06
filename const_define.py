@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-VERSION = "v1.0.0"
+VERSION = "v1.0.1"
 TITLE = 'AJ FanPage Crawler - %s' % VERSION
 # 指定要抓到那一天
 # DATETIME_LIMIT = '2018-01-1 00-00-00'
